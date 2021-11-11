@@ -60,7 +60,7 @@ function fasync_step!(ctx)
         if c == 1
             i = ctx.c[1]
         else
-            i = rand(ctx.c[1:c])
+            i = ctx.c[rand(1:c)]
         end
         ctx.x[i] = !ctx.x[i]
         i
