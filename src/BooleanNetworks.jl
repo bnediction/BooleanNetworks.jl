@@ -1,5 +1,5 @@
 module BooleanNetworks
-export zerocfg, load_bnet, fasync_simulations
+export zerocfg, load_bnet, fasync_simulations, outputs_ratios, resolve
 
 struct BooleanNetwork
     nodes::Vector{String}
@@ -7,6 +7,8 @@ struct BooleanNetwork
     f::Vector{Function}
     out_influences::Vector{Vector{Int64}} # out-going influences
 end
+
+resolve(bn, indexes) = [bn.nodes[i] for i in indexes]
 
 zerocfg(bn) = zeros(Bool, length(bn.f))
 
@@ -82,6 +84,8 @@ function make_number(binarray)
     end
     x
 end
+unpack_number(x, letters) = [a for (i,a) in enumerate(letters) if x & (1 << (i-1)) > 0]
+
 function fasync_simulations(bn, outputs, nb_sims, maxsteps, x)
     f = bn.f
     n = length(f)
@@ -103,6 +107,15 @@ function fasync_simulations(bn, outputs, nb_sims, maxsteps, x, free_nodes)
         res[i] = make_number(_fasync_simulation!(ctx, f, n, x, maxsteps, outputs))
     end
     res
+end
+
+function outputs_ratios(result, outputs, bn)
+    cv = zeros(Int64, 2^length(outputs))
+    for k in result
+        cv[k] += 1
+    end
+    make_key(k) = resolve(bn, unpack_number(k, outputs))
+    Dict(make_key(k) => c/length(result) for (k,c) in enumerate(cv) if c > 0)
 end
 
 end

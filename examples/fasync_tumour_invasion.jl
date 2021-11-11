@@ -1,3 +1,8 @@
+# usage from repository root:
+#
+# julia --project=. examples/fasync_tumour_invasion.jl
+#
+
 using BooleanNetworks
 
 import Random
@@ -18,8 +23,8 @@ for i in free_nodes
 end
 
 # warm-up
-fasync_simulations(bn, outputs, 1, 1, x0)
-fasync_simulations(bn, outputs, 1, 1, x0, free_nodes)
+fasync_simulations(bn, outputs, 1, 10, x0)
+fasync_simulations(bn, outputs, 1, 10, x0, free_nodes)
 
 #using BenchmarkTools
 
@@ -33,3 +38,7 @@ end
 using Profile
 @profile fasync_simulations(bn, outputs, nb_sims, maxsteps, x0);
 Profile.print()
+
+result = fasync_simulations(bn, outputs, nb_sims, maxsteps, x0);
+ratios = outputs_ratios(result, outputs, bn)
+println(ratios)
