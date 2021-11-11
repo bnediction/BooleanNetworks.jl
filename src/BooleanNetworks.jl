@@ -12,16 +12,16 @@ zerocfg(bn) = zeros(Bool, length(bn.f))
 
 BNET_SYMBOL_RE = r"[\w\.:]+"
 
-function load_bnet(filename, sep=",", impl_binary=false)
+function load_bnet(filename, sep=",", impl_binary=true)
     data = [split(line, sep) for line in eachline(filename)]
     n = length(data)
     nodes = [strip(d[1]) for d in data]
     index = Dict(((n,i) for (i,n) in enumerate(nodes)))
 
-    impl_expr_bool(expr) = "x -> " * replace(replace(expr,
+    impl_expr_bin(expr) = "x -> " * replace(replace(expr,
             "!" => "~"),
              BNET_SYMBOL_RE => x -> "x[$(index[x])]")
-    impl_expr_bin(expr) = "x -> " * replace(replace(replace(expr,
+    impl_expr_bool(expr) = "x -> " * replace(replace(replace(expr,
             "|" => "||"),
             "&" => "&&"),
              BNET_SYMBOL_RE => x -> "x[$(index[x])]")
