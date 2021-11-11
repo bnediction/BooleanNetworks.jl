@@ -36,47 +36,42 @@ function load_bnet(filename, sep=",", impl_binary=false)
 end
 
 struct FAsyncSimulationContext
-    bn
-    n
-    x
-    c
+    x::Vector{Bool}
+    c::Vector{Int64}
 end
-new_fasync_simulation(bn) = FAsyncSimulationContext(bn, length(bn.f),
-        Vector{Bool}(undef, length(bn.f)),
-        Vector{Int64}(undef, length(bn.f))
-    )
+new_fasync_simulation(n) = FAsyncSimulationContext(Vector{Bool}(undef, n), Vector{Int64}(undef, n))
 
-function fasync_step!(ctx)
-    c = 0
-    for i in 1:ctx.n
-        if ctx.bn.f[i](ctx.x) ⊻ ctx.x[i]
-            c += 1
-            ctx.c[c] = i
+function _fasync_step!(x, c, f, n)
+    nc = 0
+    for i in 1:n
+        if f[i](x) ⊻ x[i]
+            nc += 1
+            c[nc] = i
         end
     end
-    if c == 0
+    if nc == 0
         0
     else
-        if c == 1
-            i = ctx.c[1]
+        if nc == 1
+            i = c[1]
         else
-            i = ctx.c[rand(1:c)]
+            i = c[rand(1:nc)]
         end
-        ctx.x[i] = !ctx.x[i]
+        x[i] = !x[i]
         i
     end
 end
 
-_fasync_unroll!(ctx, maxsteps) =
+_fasync_unroll!(ctx, f, n, maxsteps) =
     for _ in 1:maxsteps
-        if fasync_step!(ctx) == 0
+        if _fasync_step!(ctx.x, ctx.c, f, n) == 0
             break
         end
     end
 
-function _fasync_simulation!(ctx, x, maxsteps, outputs)
-    ctx.x[1:ctx.n] = x
-    _fasync_unroll!(ctx, maxsteps)
+function _fasync_simulation!(ctx, f, n, x, maxsteps, outputs)
+    ctx.x[1:n] = x
+    _fasync_unroll!(ctx, f, n, maxsteps)
     @view ctx.x[outputs]
 end
 
@@ -87,22 +82,25 @@ function make_number(binarray)
     end
     x
 end
-
 function fasync_simulations(bn, outputs, nb_sims, maxsteps, x)
+    f = bn.f
+    n = length(f)
     res = Array{Int64}(undef, nb_sims)
-    ctx = new_fasync_simulation(bn)
+    ctx = new_fasync_simulation(n)
     for i in 1:nb_sims
-        res[i] = make_number(_fasync_simulation!(ctx, x, maxsteps, outputs))
+        res[i] = make_number(_fasync_simulation!(ctx, f, n, x, maxsteps, outputs))
     end
     res
 end
 function fasync_simulations(bn, outputs, nb_sims, maxsteps, x, free_nodes)
+    f = bn.f
+    n = length(f)
     x = copy(x)
     res = Array{Int64}(undef, nb_sims)
-    ctx = new_fasync_simulation(bn)
+    ctx = new_fasync_simulation(n)
     for i in 1:nb_sims
         x[free_nodes] = rand(Bool, length(free_nodes))
-        res[i] = make_number(_fasync_simulation!(ctx, x, maxsteps, outputs))
+        res[i] = make_number(_fasync_simulation!(ctx, f, n, x, maxsteps, outputs))
     end
     res
 end

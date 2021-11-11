@@ -29,3 +29,7 @@ for _ in 1:4
     println("Performing $nb_sims simulations of at most $maxsteps from fixed initial configuration")
     @time fasync_simulations(bn, outputs, nb_sims, maxsteps, x0);
 end
+
+using Profile
+@profile fasync_simulations(bn, outputs, nb_sims, maxsteps, x0);
+Profile.print()
