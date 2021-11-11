@@ -1,0 +1,4 @@
+name = "BooleanNetworks"
+uuid = "d3336e3b-cb21-4231-9499-9b18909c4c76"
+authors = ["Loïc Paulevé <loic.pauleve@ens-cachan.org>"]
+version = "0.1.0"
