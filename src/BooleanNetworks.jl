@@ -77,14 +77,14 @@ function _fasync_simulation!(ctx, f, n, x, maxsteps, outputs)
     @view ctx.x[outputs]
 end
 
-function make_number(binarray)
+function pack_output(binarray)
     x::Int64 = 0
     for i in 1:length(binarray)
         x |= binarray[i] << (i-1)
     end
     x
 end
-unpack_number(x, letters) = [a for (i,a) in enumerate(letters) if x & (1 << (i-1)) > 0]
+unpack_output(x, letters) = [a for (i,a) in enumerate(letters) if x & (1 << (i-1)) > 0]
 
 function fasync_simulations(bn, outputs, nb_sims, maxsteps, x)
     f = bn.f
@@ -92,19 +92,7 @@ function fasync_simulations(bn, outputs, nb_sims, maxsteps, x)
     res = Array{Int64}(undef, nb_sims)
     ctx = new_fasync_simulation(n)
     for i in 1:nb_sims
-        res[i] = make_number(_fasync_simulation!(ctx, f, n, x, maxsteps, outputs))
-    end
-    res
-end
-function fasync_simulations(bn, outputs, nb_sims, maxsteps, x, free_nodes)
-    f = bn.f
-    n = length(f)
-    x = copy(x)
-    res = Array{Int64}(undef, nb_sims)
-    ctx = new_fasync_simulation(n)
-    for i in 1:nb_sims
-        x[free_nodes] = rand(Bool, length(free_nodes))
-        res[i] = make_number(_fasync_simulation!(ctx, f, n, x, maxsteps, outputs))
+        res[i] = pack_output(_fasync_simulation!(ctx, f, n, x, maxsteps, outputs))
     end
     res
 end
@@ -114,7 +102,7 @@ function outputs_ratios(result, outputs, bn)
     for k in result
         cv[k] += 1
     end
-    make_key(k) = resolve(bn, unpack_number(k, outputs))
+    make_key(k) = resolve(bn, unpack_output(k, outputs))
     Dict(make_key(k) => c/length(result) for (k,c) in enumerate(cv) if c > 0)
 end
 

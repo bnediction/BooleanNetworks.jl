@@ -24,7 +24,6 @@ end
 
 # warm-up
 fasync_simulations(bn, outputs, 1, 10, x0)
-fasync_simulations(bn, outputs, 1, 10, x0, free_nodes)
 
 #using BenchmarkTools
 
