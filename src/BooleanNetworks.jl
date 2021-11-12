@@ -90,9 +90,9 @@ function fasync_simulations(bn, outputs, nb_sims, maxsteps, x)
     f = bn.f
     n = length(f)
     res = Array{Int64}(undef, nb_sims)
-    ctx = new_fasync_simulation(n)
-    for i in 1:nb_sims
-        res[i] = pack_output(_fasync_simulation!(ctx, f, n, x, maxsteps, outputs))
+    ctx = [new_fasync_simulation(n) for _ in 1:Threads.nthreads()]
+    Threads.@threads for i in 1:nb_sims
+        res[i] = pack_output(_fasync_simulation!(ctx[Threads.threadid()], f, n, x, maxsteps, outputs))
     end
     res
 end
