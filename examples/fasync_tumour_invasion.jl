@@ -28,7 +28,7 @@ fasync_simulations(bn, outputs, 1, 10, x0, free_nodes)
 
 #using BenchmarkTools
 
-nb_sims = 10000
+nb_sims = 100000
 maxsteps = 500
 for _ in 1:4
     println("Performing $nb_sims simulations of at most $maxsteps from fixed initial configuration")
